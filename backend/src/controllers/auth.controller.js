@@ -16,24 +16,21 @@ export async function signup(req, res) {
     if (existingUser)
       return res.status(400).json({ message: "Email already exists" });
 
-    const idx = Math.floor(Math.random() * 100) + 1;
-    const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
-
     const newUser = await User.create({
       email,
       fullName,
       password,
-      profilePic: randomAvatar,
+      profilePic: "",
     });
 
     try {
       await upsertStreamUser({
         id: newUser._id.toString(),
         name: newUser.fullName,
-        image: newUser.profilePic || "",
+        image: "",
       });
     } catch (error) {
-      console.log("Stream error:", error.message);
+      console.log("Stream error ignored for stability");
     }
 
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
@@ -74,8 +71,8 @@ export async function login(req, res) {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: "none", 
-      secure: true, 
+      sameSite: "none",
+      secure: true,
     });
 
     res.status(200).json({ success: true, user });
