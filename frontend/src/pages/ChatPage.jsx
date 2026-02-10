@@ -28,10 +28,11 @@ const ChatPage = () => {
   const [loading, setLoading] = useState(true);
   const { authUser } = useAuthUser();
 
-  const { data: tokenData } = useQuery({
+  const { data: tokenData, isError } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
     enabled: !!authUser,
+    retry: false,
   });
 
   useEffect(() => {
@@ -44,14 +45,16 @@ const ChatPage = () => {
         setLoading(true);
         client = StreamChat.getInstance(STREAM_API_KEY);
 
-        await client.connectUser(
-          {
-            id: authUser._id,
-            name: authUser.fullName,
-            image: authUser.profilePic || "",
-          },
-          tokenData.token,
-        );
+        if (client.userID !== authUser._id) {
+          await client.connectUser(
+            {
+              id: authUser._id,
+              name: authUser.fullName,
+              image: authUser.profilePic || "",
+            },
+            tokenData.token,
+          );
+        }
 
         const channelId = [authUser._id, targetUserId].sort().join("-");
         const currChannel = client.channel("messaging", channelId, {
@@ -63,8 +66,8 @@ const ChatPage = () => {
         setChatClient(client);
         setChannel(currChannel);
       } catch (error) {
-        console.error("Error initializing chat:", error);
-        toast.error("Could not connect to chat. Please try again.");
+        console.error("Chat init error:", error);
+        toast.error("Connection failed.");
       } finally {
         setLoading(false);
       }
@@ -81,17 +84,19 @@ const ChatPage = () => {
     };
   }, [tokenData, authUser, targetUserId]);
 
+  if (isError)
+    return <div className="p-4">Error loading token. Please refresh.</div>;
+  if (loading || !chatClient || !channel) return <ChatLoader />;
+
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
       channel.sendMessage({
-        text: `I've started a video call. Join me here: ${callUrl}`,
+        text: `I've started a video call: ${callUrl}`,
       });
-      toast.success("Video call link sent successfully!");
+      toast.success("Call link sent!");
     }
   };
-
-  if (loading || !chatClient || !channel) return <ChatLoader />;
 
   return (
     <div className="h-[93vh]">
