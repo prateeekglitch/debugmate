@@ -11,19 +11,17 @@ import chatRoutes from "./routes/chat.route.js";
 import { connectDB } from "./lib/db.js";
 
 const app = express();
-const PORT = process.env.PORT || 5001; // Port fallback zaroori hai
-
+const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production" ? false : "http://localhost:5173",
+    origin: true, 
     credentials: true,
   }),
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
