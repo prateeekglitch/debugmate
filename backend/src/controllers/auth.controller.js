@@ -82,11 +82,7 @@ export async function login(req, res) {
 }
 
 export function logout(req, res) {
-  res.clearCookie("jwt", {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  });
+  res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
   res.status(200).json({ success: true, message: "Logout successful" });
 }
 
@@ -95,16 +91,8 @@ export async function onboard(req, res) {
     const userId = req.user._id;
     const { fullName, bio, nativeLanguage, learningLanguage, location } =
       req.body;
-
-    if (
-      !fullName ||
-      !bio ||
-      !nativeLanguage ||
-      !learningLanguage ||
-      !location
-    ) {
+    if (!fullName || !bio || !nativeLanguage || !learningLanguage || !location)
       return res.status(400).json({ message: "All fields are required" });
-    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -116,10 +104,10 @@ export async function onboard(req, res) {
       await upsertStreamUser({
         id: updatedUser._id.toString(),
         name: updatedUser.fullName,
-        image: updatedUser.profilePic || "",
+        image: "",
       });
-    } catch (streamError) {
-      console.log("Stream update error:", streamError.message);
+    } catch (e) {
+      console.log(e.message);
     }
 
     res.status(200).json({ success: true, user: updatedUser });
