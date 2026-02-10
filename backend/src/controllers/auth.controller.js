@@ -43,8 +43,8 @@ export async function signup(req, res) {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: "none", // Production deployment ke liye 'none' better hai
-      secure: true, // Render par HTTPS hota hai
+      sameSite: "none",
+      secure: true,
     });
 
     res.status(201).json({ success: true, user: newUser });
@@ -83,4 +83,50 @@ export async function login(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
-// Logout aur Onboard controllers ko as it is rehne do (bas secret check kar lena)
+
+export function logout(req, res) {
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+  res.status(200).json({ success: true, message: "Logout successful" });
+}
+
+export async function onboard(req, res) {
+  try {
+    const userId = req.user._id;
+    const { fullName, bio, nativeLanguage, learningLanguage, location } =
+      req.body;
+
+    if (
+      !fullName ||
+      !bio ||
+      !nativeLanguage ||
+      !learningLanguage ||
+      !location
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { ...req.body, isOnboarded: true },
+      { new: true },
+    );
+
+    try {
+      await upsertStreamUser({
+        id: updatedUser._id.toString(),
+        name: updatedUser.fullName,
+        image: updatedUser.profilePic || "",
+      });
+    } catch (streamError) {
+      console.log("Stream update error:", streamError.message);
+    }
+
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
