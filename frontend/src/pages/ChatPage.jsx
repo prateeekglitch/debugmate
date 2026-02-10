@@ -65,10 +65,10 @@ const ChatPage = () => {
 
         setChatClient(client);
         setChannel(currChannel);
+        setLoading(false);
       } catch (error) {
         console.error("Chat init error:", error);
         toast.error("Connection failed.");
-      } finally {
         setLoading(false);
       }
     };
@@ -92,7 +92,7 @@ const ChatPage = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
       channel.sendMessage({
-        text: `I've started a video call: ${callUrl}`,
+        text: `Join video call: ${callUrl}`,
       });
       toast.success("Call link sent!");
     }
