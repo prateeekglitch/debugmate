@@ -3,11 +3,9 @@ import "dotenv/config";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";
-
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
-
 import { connectDB } from "./lib/db.js";
 
 const app = express();
@@ -16,7 +14,7 @@ const __dirname = path.resolve();
 
 app.use(
   cors({
-    origin: true, 
+    origin: true,
     credentials: true,
   }),
 );
@@ -36,6 +34,5 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
   connectDB();
 });
