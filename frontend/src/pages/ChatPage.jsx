@@ -55,6 +55,7 @@ const ChatPage = () => {
         setChannel(currChannel);
         setLoading(false);
       } catch (error) {
+        console.log(error);
         toast.error("Connection failed.");
         setLoading(false);
       }
